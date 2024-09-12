@@ -1,24 +1,40 @@
 import { useState } from "react";
 import { Header } from "./components/Header";
 import styles from "./styles/App.module.css";
+import { STORAGE_SERVICE } from "./services/storage";
 
 function App() {
   const [inputValue, setInputValue] = useState("");
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      description: "Comprar pão",
-      isCompleted: false,
-    },
-  ]);
+  const [tasks, setTasks] = useState(()=>STORAGE_SERVICE.listTasks());
+
+  
+
 
   function handleClick() {
     if (!inputValue) {
-      alert("A tarefa precisa de uma descrição");
-    }
+     return alert("A tarefa precisa de uma descrição");
+    } 
+      const newTask = {
+        description: inputValue, 
+        isCompleted: false
+      }
+    setTasks((prevState)=>[...prevState, newTask])
+      STORAGE_SERVICE.createTask(inputValue)
+    setInputValue("")
+    
   }
+    function handleCheckboxChange(event){
+      STORAGE_SERVICE.updateTaskState(event.target.value)
+      const updatedTasks = STORAGE_SERVICE.listTasks
 
-  return (
+      setTasks(updatedTasks)
+    }
+
+    const totalTasks = tasks.length
+
+    const completedTasks = tasks.filter(task=>task.isCompleted).length
+ 
+    return (
     <>
       <div className={styles.app}>
         <Header />
@@ -40,11 +56,11 @@ function App() {
             <header className={styles["task-header"]}>
               <div className={styles["div-task"]}>
                 <strong className={styles.strong}>Tarefas criadas</strong>
-                <span className={styles["count-tasks"]}>0</span>
+                <span className={styles["count-tasks"]}>{totalTasks}</span>
               </div>
               <div className={styles["div-task"]}>
                 <strong className={styles.strong}>Concluídas</strong>
-                <span className={styles["count-finisheds"]}>0</span>
+                <span className={styles["count-finisheds"]}>{completedTasks}</span>
               </div>
             </header>
             <div className="empty-state"></div>
@@ -53,8 +69,21 @@ function App() {
 
             <ul className={styles["task-list"]}>
               {tasks.map((task) => (
-                <li key={task.id}>
-                  <strong>{task.description}</strong>
+                <li key={task.description}
+                className={styles["task-item"]}>
+                  
+                  
+                  <input type="checkbox" 
+                    onChange={handleCheckboxChange}
+                    value={task.description}
+                    checked = {task.isCompleted}
+
+                  />
+                  
+                  
+                  <p>{task.description}
+
+                  </p>
                 </li>
               ))}
             </ul>
